@@ -1,0 +1,15 @@
+workflows:
+  ios-release:
+    name: Your Divine Mind – iOS Release
+    environment:
+      xcode: latest
+      vars:
+        XCODE_WORKSPACE: "YourDivineMind.xcodeproj"
+        XCODE_SCHEME: "YourDivineMind"
+        BUNDLE_ID: "com.yourcompany.yourdivinemind"
+    scripts:
+      - name: Build
+        script: |
+          xcodebuild -project "$XCODE_WORKSPACE" -scheme "$XCODE_SCHEME" -sdk iphoneos -configuration Release build
+    artifacts:
+      - build/ios/Release/*.ipa
