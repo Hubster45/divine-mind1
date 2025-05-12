@@ -1,15 +1,39 @@
-workflows:
+      workflows:
   ios-release:
     name: Your Divine Mind – iOS Release
+    max_build_duration: 45
     environment:
-      xcode: latest
       vars:
-        XCODE_WORKSPACE: "YourDivineMind.xcodeproj"
+        XCODE_PROJECT: "YourDivineMindApp.swift"
         XCODE_SCHEME: "YourDivineMind"
         BUNDLE_ID: "com.yourcompany.yourdivinemind"
+        AGORA_APP_ID: Encrypted(AGORA_APP_ID)
+        FIREBASE_API_KEY: Encrypted(FIREBASE_API_KEY)
+        GOOGLE_SERVICES_JSON: Encrypted(GOOGLE_SERVICES_JSON)
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_credentials
     scripts:
-      - name: Build
+      - name: Set up project
         script: |
-          xcodebuild -project "$XCODE_WORKSPACE" -scheme "$XCODE_SCHEME" -sdk iphoneos -configuration Release build
+          echo "Configuring Firebase and Agora"
+          echo $GOOGLE_SERVICES_JSON > ./GoogleService-Info.plist
+      - name: Build .ipa
+        script: |
+          xcodebuild -project YourDivineMind.xcodeproj \
+            -scheme YourDivineMind \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath $HOME/build/YourDivineMind.xcarchive \
+            clean archive
+
+          xcodebuild -exportArchive \
+            -archivePath $HOME/build/YourDivineMind.xcarchive \
+            -exportOptionsPlist exportOptions.plist \
+            -exportPath $HOME/build/export
     artifacts:
-      - build/ios/Release/*.ipa
+      - $HOME/build/export/*.ipa
+    publishing:
+      app_store_connect:
+        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
